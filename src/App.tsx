@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import Layout from "./components/Layout";
 import PacketList from "./components/PacketList";
 import { Provider } from "./components/ui/provider"; 
