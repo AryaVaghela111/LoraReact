@@ -1,7 +1,8 @@
 import Layout from "./components/Layout";
-import PacketList from "./components/PacketList";
+// import PacketList from "./components/PacketList";
 import { Provider } from "./components/ui/provider"; 
 import './App.css'
+import PacketTable from "./components/PacketTable";
 
 function App() {
 
@@ -9,7 +10,7 @@ function App() {
     <>
     <Provider>
       <Layout>
-        <PacketList />
+        <PacketTable />
       </Layout>
       </Provider>
     </>
