@@ -1,4 +1,4 @@
-import { Box, Stack, Flex } from '@chakra-ui/react';
+import { Box, Flex } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import FrequencyFilter from './FrequencyFilter';
 import PacketTable from './PacketTable';
