@@ -1,20 +1,17 @@
 import Layout from "./components/Layout";
-// import PacketList from "./components/PacketList";
-import { Provider } from "./components/ui/provider"; 
-import './App.css'
-import PacketTable from "./components/PacketTable";
+import { Provider } from "./components/ui/provider";
+import './App.css';
+import Dashboard from "./components/Dashboard";
+
 
 function App() {
-
   return (
-    <>
     <Provider>
       <Layout>
-        <PacketTable />
+        <Dashboard />
       </Layout>
-      </Provider>
-    </>
-  )
+    </Provider>
+  );
 }
 
-export default App
+export default App;

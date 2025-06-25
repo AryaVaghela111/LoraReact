@@ -3,10 +3,7 @@ import {
   Spinner,
   Text,
   Table,
-  Stack,
 } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
-import FrequencyFilter from './FrequencyFilter';
 
 type Packet = {
   id: number;
@@ -28,45 +25,15 @@ const formatTimestamp = (iso: string) => {
     day % 10 === 1 && day !== 11 ? 'st' :
     day % 10 === 2 && day !== 12 ? 'nd' :
     day % 10 === 3 && day !== 13 ? 'rd' : 'th';
-
   const month = date.toLocaleString(undefined, { month: 'long' });
 
   return `${timePart} ${day}${suffix} ${month}`;
 };
 
-
-const PacketTable = () => {
-  const [packets, setPackets] = useState<Packet[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const loadPackets = async () => {
-    try {
-      const res = await fetch('/packets');
-      const data = await res.json();
-      setPackets(data);
-      setLoading(false);
-    } catch (err) {
-      console.error('⚠️ Failed to load packets:', err);
-    }
-  };
-
-  useEffect(() => {
-    loadPackets();
-    const interval = setInterval(loadPackets, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const [selectedFrequencies, setSelectedFrequencies] = useState<number[]>([]);
+const PacketTable = ({ packets, loading }: { packets: Packet[]; loading: boolean }) => {
   return (
-    <>
-      <Stack direction="row" align="start">
-  <FrequencyFilter
-    packets={packets}
-    selectedFrequencies={selectedFrequencies}
-    onChange={setSelectedFrequencies}
-  />
-  <Box flex="1">
-    <Text fontSize="2xl" mb="4" fontWeight="bold">
+    <Box flex="1">
+      <Text fontSize="2xl" mb="4" fontWeight="bold">
         📡 LoRaWAN Packet Log
       </Text>
 
@@ -94,13 +61,7 @@ const PacketTable = () => {
           </Table.Body>
         </Table.Root>
       )}
-  </Box>
-</Stack>
-
-    {/* <Box p="4" bg="white" _dark={{ bg: 'gray.800' }} rounded="lg" shadow="md">
-      
-    </Box> */}
-    </>
+    </Box>
   );
 };
 

@@ -1,5 +1,10 @@
-import { Checkbox, VStack, Text, Box } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
+import {
+  Checkbox,
+  VStack,
+  Text,
+  Box
+} from "@chakra-ui/react";
+import { useEffect, useState } from "react";
 
 export interface FrequencyFilterProps {
   packets: { frequency: number }[];
@@ -7,7 +12,11 @@ export interface FrequencyFilterProps {
   onChange: (frequencies: number[]) => void;
 }
 
-const FrequencyFilter = ({ packets, selectedFrequencies, onChange }: FrequencyFilterProps) => {
+const FrequencyFilter = ({
+  packets,
+  selectedFrequencies,
+  onChange,
+}: FrequencyFilterProps) => {
   const [uniqueFrequencies, setUniqueFrequencies] = useState<number[]>([]);
 
   useEffect(() => {
@@ -25,15 +34,21 @@ const FrequencyFilter = ({ packets, selectedFrequencies, onChange }: FrequencyFi
 
   return (
     <Box p={4} borderRight="1px solid #ccc" minW="200px">
-      <Text fontSize="lg" mb={2} fontWeight="bold">Filter by Frequency</Text>
-      <VStack align="start" >
+      <Text fontSize="lg" mb={2} fontWeight="bold">
+        Filter by Frequency
+      </Text>
+      <VStack align="start">
         {uniqueFrequencies.map((freq) => (
           <Checkbox.Root
             key={freq}
             checked={selectedFrequencies.includes(freq)}
-            onChange={() => handleToggle(freq)}
+            onCheckedChange={() => handleToggle(freq)}
           >
-            {freq} MHz
+            <Checkbox.HiddenInput />
+            <Checkbox.Control>
+              <Checkbox.Indicator />
+            </Checkbox.Control>
+            <Checkbox.Label>{freq} MHz</Checkbox.Label>
           </Checkbox.Root>
         ))}
       </VStack>

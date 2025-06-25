@@ -5,7 +5,9 @@ import Footer from "./Footer";
 const Layout = ({ children }: { children: React.ReactNode }) => (
   <Flex direction="column" minH="100vh">
     <Header />
-    <Box flex="1">{children}</Box>
+    <Flex flex="1" direction="row" overflow="hidden">
+      {children}
+    </Flex>
     <Footer />
   </Flex>
 );
