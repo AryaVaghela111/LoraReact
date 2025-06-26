@@ -36,7 +36,7 @@ fastify.get('/ws', { websocket: true }, (connection) => {
 fastify.get('/packets', async (request, reply) => {
   try {
     const dbInstance = await db;
-    const rows = await dbInstance.all(`SELECT * FROM packets ORDER BY id DESC LIMIT 20`);
+    const rows = await dbInstance.all(`SELECT * FROM packets ORDER BY id DESC`);
     return rows;
   } catch (err) {
     fastify.log.error(err);
