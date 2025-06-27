@@ -50,10 +50,25 @@ fastify.get('/ws', { websocket: true }, (connection) => {
 });
 
 // REST API to fetch all stored packets
+// REST API with pagination
 fastify.get('/packets', async (request, reply) => {
   try {
-    const packets = await Packet.find().sort({ _id: -1 });
-    return packets;
+    const { page = 1, limit = 25 } = request.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const packets = await Packet.find()
+      .sort({ _id: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await Packet.countDocuments();
+
+    reply.send({
+      packets,
+      total,
+      page: parseInt(page),
+      pages: Math.ceil(total / parseInt(limit)),
+    });
   } catch (err) {
     fastify.log.error(err);
     reply.status(500).send({ error: 'Failed to retrieve packets' });

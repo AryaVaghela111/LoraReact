@@ -4,7 +4,7 @@ import FrequencyFilter from './FrequencyFilter';
 import PacketTable from './PacketTable';
 
 type Packet = {
-  id: number;
+  _id: string;
   timestamp: string;
   message: string;
   frequency: number;
@@ -19,7 +19,7 @@ const Dashboard = () => {
     try {
       const res = await fetch('/packets');
       const data = await res.json();
-      setPackets(data);
+      setPackets(data.packets);
       setLoading(false);
     } catch (err) {
       console.error('⚠️ Failed to load packets:', err);
@@ -55,6 +55,7 @@ const Dashboard = () => {
 
       <Box flex="1" px={6} py={6}>
         <PacketTable packets={filteredPackets} loading={loading} />
+
       </Box>
     </Flex>
   );
