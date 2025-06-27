@@ -9,7 +9,6 @@ import {
   Table,
 } from '@chakra-ui/react';
 import { CiSearch } from 'react-icons/ci';
-import { useEffect, useState } from 'react';
 
 type Packet = {
   _id: string;
@@ -21,6 +20,9 @@ type Packet = {
 type PacketTableProps = {
   packets: Packet[];
   loading: boolean;
+  page: number;
+  pages: number;
+  onPageChange: (page: number) => void;
 };
 
 const formatTimestamp = (iso: string) => {
@@ -45,17 +47,7 @@ const formatTimestamp = (iso: string) => {
   return `${timePart} ${day}${suffix} ${month}`;
 };
 
-const PacketTable = ({ packets, loading }: PacketTableProps) => {
-
-  const [page, setPage] = useState(1);
-  const itemsPerPage = 25;
-
-  const pages = Math.max(1, Math.ceil(packets.length / itemsPerPage));
-  const startIndex = (page - 1) * itemsPerPage;
-  const currentPackets = packets.slice(startIndex, startIndex + itemsPerPage);
-
-  
-
+const PacketTable = ({ packets, loading, page, pages, onPageChange }: PacketTableProps) => {
   return (
     <Box flex="1">
       <Text fontSize="2xl" mb="4" fontWeight="bold">
@@ -80,7 +72,7 @@ const PacketTable = ({ packets, loading }: PacketTableProps) => {
               </Table.Row>
             </Table.Header>
             <tbody>
-              {currentPackets.map((pkt, index) => (
+              {packets.map((pkt, index) => (
                 <Table.Row key={pkt._id}>
                   <Table.Cell>{(page - 1) * 25 + index + 1}</Table.Cell>
                   <Table.Cell>{formatTimestamp(pkt.timestamp)}</Table.Cell>
@@ -92,13 +84,13 @@ const PacketTable = ({ packets, loading }: PacketTableProps) => {
           </Table.Root>
 
           <HStack mt="4">
-            <Button onClick={() => setPage((p) => Math.max(p - 1, 1))} disabled={page === 1}>
+            <Button onClick={() => onPageChange(page - 1)} disabled={page === 1}>
               Previous
             </Button>
             <Text>
               Page {page} of {pages}
             </Text>
-            <Button onClick={() => setPage((p) => Math.min(p + 1, pages))} disabled={page === pages}>
+            <Button onClick={() => onPageChange(page + 1)} disabled={page === pages}>
               Next
             </Button>
           </HStack>

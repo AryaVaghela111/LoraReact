@@ -62,6 +62,10 @@ fastify.get('/packets', async (request, reply) => {
       .limit(parseInt(limit));
 
     const total = await Packet.countDocuments();
+    console.log(`This is total ${total} `);
+
+    const pages = Math.ceil(total / limit);
+console.log(`📊 Total: ${total}, Limit: ${limit}, Pages: ${pages}`);
 
     reply.send({
       packets,

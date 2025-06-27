@@ -13,25 +13,31 @@ type Packet = {
 const Dashboard = () => {
   const [packets, setPackets] = useState<Packet[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
   const [selectedFrequencies, setSelectedFrequencies] = useState<number[]>([]);
 
-  const loadPackets = async () => {
+  const loadPackets = async (pageNum: number = 1) => {
     try {
-      const res = await fetch('/packets');
+      setLoading(true);
+      const res = await fetch(`/packets?page=${pageNum}&limit=25`);
       const data = await res.json();
+
       setPackets(data.packets);
-      setLoading(false);
+      setPage(data.page);
+      setPages(data.pages);
     } catch (err) {
-      console.error('⚠️ Failed to load packets:', err);
+      console.error('❌ Failed to load packets:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadPackets();
-    const interval = setInterval(loadPackets, 5000);
-    return () => clearInterval(interval);
+    loadPackets(1);
   }, []);
 
+  // Apply filtering on the currently fetched page
   const filteredPackets =
     selectedFrequencies.length === 0
       ? packets
@@ -54,8 +60,13 @@ const Dashboard = () => {
       </Box>
 
       <Box flex="1" px={6} py={6}>
-        <PacketTable packets={filteredPackets} loading={loading} />
-
+        <PacketTable
+          packets={filteredPackets}
+          loading={loading}
+          page={page}
+          pages={pages}
+          onPageChange={(newPage) => loadPackets(newPage)}
+        />
       </Box>
     </Flex>
   );
