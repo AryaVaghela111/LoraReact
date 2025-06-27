@@ -7,6 +7,31 @@ import { fileURLToPath } from 'url';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import Packet from './models/Packet.js';
+import { parse, isValid } from 'date-fns';
+
+function parseDateFromSearch(search) {
+  const formats = [
+    "d MMMM",
+    "do MMMM",
+    "h:mm a d MMMM",
+    "h:mm a do MMMM",
+    "MMMM d, yyyy",
+    "yyyy-MM-dd",
+  ];
+
+  for (const formatStr of formats) {
+    const parsed = parse(search, formatStr, new Date());
+    if (isValid(parsed)) {
+      // Extract just the 'YYYY-MM-DD' part as a string
+       const year = parsed.getFullYear();
+      const month = String(parsed.getMonth() + 1).padStart(2, '0');
+      const day = String(parsed.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+  }
+
+  return null;
+}
 
 dotenv.config();
 
@@ -55,19 +80,37 @@ fastify.get('/packets', async (request, reply) => {
   try {
     const { page = 1, limit = 25, search = '' } = request.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
+    // const query = search
+    const searchDate = parseDateFromSearch(search);
+    fastify.log.info(`🔍 Search query: "${searchDate}"`);
+let query = {};
 
-    const query = search
-    ? {
-        $or: [
-          { message: { $regex: search, $options: 'i' } },
-        ],
-      }
-    : {};
+if (searchDate) {
+  const start = new Date(`${searchDate}T00:00:00.000Z`);
+  const end = new Date(`${searchDate}T23:59:59.999Z`);
+  query = {
+    timestamp: {
+      $gte: start,
+      $lte: end,
+    },
+  };
+}else if (search) {
+  query = {
+    $or: [
+      { message: { $regex: search, $options: 'i' } },
+    ],
+  };
+}
+console.log("Query being run:", JSON.stringify(query, null, 2));
 
     const packets = await Packet.find(query)
       .sort({ _id: -1 })
       .skip(skip)
       .limit(parseInt(limit));
+
+      packets.slice(0, 5).forEach(p => {
+  console.log("📦 Packet timestamp:", p.timestamp);
+});
 
     const total = await Packet.countDocuments(query);
     console.log(`This is total ${total} `);
