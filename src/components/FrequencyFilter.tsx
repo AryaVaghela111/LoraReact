@@ -3,7 +3,6 @@ import {
   VStack,
   Text,
   Box,
-  Flex,
   StackSeparator
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
