@@ -4,23 +4,40 @@ import fastifyWebsocket from '@fastify/websocket';
 import { createSocket } from 'dgram';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import db from './db.js';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import Packet from './models/Packet.js';
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const MONGO_URI = process.env.MONGO_URI;
 
 const fastify = Fastify({ logger: true });
 const udpServer = createSocket('udp4');
 const clients = new Set();
 
-// Serve React app build (make sure to run `vite build`)
+// MongoDB Connection
+mongoose.connect(MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+}).then(() => {
+  console.log('✅ MongoDB connected');
+}).catch(err => {
+  console.error('❌ MongoDB connection error:', err);
+});
+
+
+// Serve React app
 fastify.register(fastifyStatic, {
-  root: path.join(__dirname, 'dist'), // vite build output
+  root: path.join(__dirname, 'dist'),
   prefix: '/',
   wildcard: false,
 });
 
-// WebSocket for live packet updates
+// WebSocket for live updates
 fastify.register(fastifyWebsocket);
 fastify.get('/ws', { websocket: true }, (connection) => {
   fastify.log.info('🌐 WebSocket client connected');
@@ -35,16 +52,15 @@ fastify.get('/ws', { websocket: true }, (connection) => {
 // REST API to fetch all stored packets
 fastify.get('/packets', async (request, reply) => {
   try {
-    const dbInstance = await db;
-    const rows = await dbInstance.all(`SELECT * FROM packets ORDER BY id DESC`);
-    return rows;
+    const packets = await Packet.find().sort({ _id: -1 });
+    return packets;
   } catch (err) {
     fastify.log.error(err);
     reply.status(500).send({ error: 'Failed to retrieve packets' });
   }
 });
 
-// UDP listener (Semtech format)
+// UDP listener for LoRa messages
 udpServer.on('message', async (msg, rinfo) => {
   const payload = msg.slice(12); // Semtech UDP header is 12 bytes
   try {
@@ -57,17 +73,18 @@ udpServer.on('message', async (msg, rinfo) => {
       const timestamp = new Date().toISOString();
       const frequency = pkt.freq;
 
-      console.log(`[UDP] ${decodedStr} (RSSI: ${pkt.rssi}, Freq: ${pkt.freq})`);
+      console.log(`[UDP] ${decodedStr} (RSSI: ${pkt.rssi}, Freq: ${frequency})`);
 
-      const dbInstance = await db;
-      await dbInstance.run(
-        `INSERT INTO packets (timestamp, message, frequency) VALUES (?, ?, ?)`,
-        [timestamp, decodedStr, frequency]
-      );
+      // Save to MongoDB
+      const newPacket = new Packet({
+        timestamp,
+        message: decodedStr,
+        frequency,
+      });
+      await newPacket.save();
 
+      // Send to all WebSocket clients
       const packet = { timestamp, message: decodedStr, frequency };
-
-      // Send to all connected WebSocket clients
       clients.forEach((client) => {
         client.send(JSON.stringify(packet));
       });
@@ -81,7 +98,7 @@ udpServer.bind(1700, () => {
   console.log(`🛰️  Listening for LoRa UDP packets on port 1700`);
 });
 
-// Start server
+// Start HTTP server
 fastify.listen({ port: 3000 }, (err, address) => {
   if (err) {
     console.error(err);
