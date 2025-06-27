@@ -53,15 +53,23 @@ fastify.get('/ws', { websocket: true }, (connection) => {
 // REST API with pagination
 fastify.get('/packets', async (request, reply) => {
   try {
-    const { page = 1, limit = 25 } = request.query;
+    const { page = 1, limit = 25, search = '' } = request.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    const packets = await Packet.find()
+    const query = search
+    ? {
+        $or: [
+          { message: { $regex: search, $options: 'i' } },
+        ],
+      }
+    : {};
+
+    const packets = await Packet.find(query)
       .sort({ _id: -1 })
       .skip(skip)
       .limit(parseInt(limit));
 
-    const total = await Packet.countDocuments();
+    const total = await Packet.countDocuments(query);
     console.log(`This is total ${total} `);
 
     const pages = Math.ceil(total / limit);

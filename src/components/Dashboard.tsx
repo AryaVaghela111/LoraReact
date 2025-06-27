@@ -15,15 +15,18 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
+  const [search, setSearch] = useState('');
   const [selectedFrequencies, setSelectedFrequencies] = useState<number[]>([]);
 
-  const loadPackets = async (pageNum: number = 1) => {
+  const loadPackets = async (pageNum: number = 1, currentSearch = search) => {
     try {
       setLoading(true);
-      const res = await fetch(`/packets?page=${pageNum}&limit=25`);
+      const res = await fetch(
+        `/packets?page=${pageNum}&limit=25&search=${encodeURIComponent(currentSearch)}`
+      );
       const data = await res.json();
 
-      setPackets(data.packets);
+      setPackets(Array.isArray(data.packets) ? data.packets : []);
       setPage(data.page);
       setPages(data.pages);
     } catch (err) {
@@ -37,7 +40,7 @@ const Dashboard = () => {
     loadPackets(1);
   }, []);
 
-  // Apply filtering on the currently fetched page
+  // Apply frequency filter *after* fetching
   const filteredPackets =
     selectedFrequencies.length === 0
       ? packets
@@ -65,6 +68,9 @@ const Dashboard = () => {
           loading={loading}
           page={page}
           pages={pages}
+          search={search}
+          setSearch={setSearch}
+          onSearch={(newSearch) => loadPackets(1, newSearch)}
           onPageChange={(newPage) => loadPackets(newPage)}
         />
       </Box>

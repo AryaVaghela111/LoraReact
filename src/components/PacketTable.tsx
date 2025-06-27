@@ -22,6 +22,9 @@ type PacketTableProps = {
   loading: boolean;
   page: number;
   pages: number;
+  search: string;
+  setSearch: (value: string) => void;
+  onSearch: (value: string) => void;
   onPageChange: (page: number) => void;
 };
 
@@ -47,7 +50,17 @@ const formatTimestamp = (iso: string) => {
   return `${timePart} ${day}${suffix} ${month}`;
 };
 
-const PacketTable = ({ packets, loading, page, pages, onPageChange }: PacketTableProps) => {
+const PacketTable = ({
+  packets,
+  loading,
+  page,
+  pages,
+  search,
+  setSearch,
+  onSearch,
+  onPageChange,
+}: PacketTableProps) => {
+
   return (
     <Box flex="1">
       <Text fontSize="2xl" mb="4" fontWeight="bold">
@@ -55,8 +68,15 @@ const PacketTable = ({ packets, loading, page, pages, onPageChange }: PacketTabl
       </Text>
 
       <InputGroup startElement={<CiSearch color="gray.400" />} mb="4" maxW="400px">
-        <Input placeholder="Search will be server-side (coming soon)" disabled />
-      </InputGroup>
+    <Input
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') onSearch(e.currentTarget.value);
+      }}
+      placeholder="Search message or timestamp"
+    />
+  </InputGroup>
 
       {loading ? (
         <Spinner size="lg" />
