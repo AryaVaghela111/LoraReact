@@ -1,69 +1,69 @@
-# React + TypeScript + Vite
+# LoraReact
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+LoraReact is a full-stack web application built with **React (Vite)** for the frontend and **Node.js/Express** for the backend. This project combines modern frontend development with a RESTful backend API, designed to run both seamlessly from the root directory.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Getting Started
 
-## Expanding the ESLint configuration
+To set up and run this project locally, follow the steps below.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 1. Clone the Repository
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+git clone https://github.com/AryaVaghela111/LoraReact.git
+cd LoraReact
+2. Install Dependencies
+Run the following command in the root directory to install both frontend and backend dependencies:
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+npm install
+📦 Running the Application
+This project contains both frontend and backend code in a single root directory.
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+▶️ Start the Backend
+From the root directory, run:
+
+
+
+npm start
+The backend server will start on its default port (usually http://localhost:3000).
+
+🌐 Start the Frontend
+In a new terminal (still in the root directory), run:
+
+
+
+npm run dev
+This will start the React frontend using Vite at:
+
+arduino
+
+http://localhost:5173/
+📁 Project Structure
+
+Copy
+Edit
+LoraReact/
+├── backend/          # Express backend code (if modularized)
+├── frontend/         # React frontend code (if separated)
+├── node_modules/
+├── package.json
+├── README.md
+└── ...
+Note: The actual structure may vary if everything is in the root directory.
+
+🛠️ Technologies Used
+React (Vite)
+
+Node.js
+
+Express
+
+JavaScript (ES6+)
+
+npm
+
+🤝 Contributing
+Pull requests are welcome. For major changes, please open an issue first to discuss what you'd like to change.
