@@ -10,7 +10,6 @@ A modern full-stack web application built with React (Vite) frontend and Node.js
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Project Structure](#project-structure)
 - [API Documentation](#api-documentation)
 - [Development](#development)
 - [Contributing](#contributing)
@@ -121,32 +120,7 @@ npm run build
 
 This will create optimized production builds for both frontend and backend.
 
-## 📁 Project Structure
 
-```
-LoraReact/
-├── 📁 backend/                 # Backend source code
-│   ├── 📁 routes/             # API route handlers
-│   ├── 📁 middleware/         # Custom middleware
-│   ├── 📁 models/             # Data models
-│   ├── 📁 controllers/        # Business logic
-│   └── 📄 server.js           # Express server entry point
-├── 📁 frontend/               # Frontend source code
-│   ├── 📁 src/                # React source files
-│   │   ├── 📁 components/     # Reusable React components
-│   │   ├── 📁 pages/          # Page components
-│   │   ├── 📁 hooks/          # Custom React hooks
-│   │   ├── 📁 utils/          # Utility functions
-│   │   └── 📄 App.jsx         # Main App component
-│   ├── 📁 public/             # Static assets
-│   └── 📄 index.html          # HTML template
-├── 📁 node_modules/           # Dependencies
-├── 📄 package.json            # Project configuration
-├── 📄 package-lock.json       # Dependency lock file
-├── 📄 vite.config.js          # Vite configuration
-├── 📄 .gitignore              # Git ignore rules
-└── 📄 README.md               # Project documentation
-```
 
 ## 🔌 API Documentation
 
