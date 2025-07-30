@@ -3,13 +3,31 @@ import { Provider } from "./components/ui/provider";
 import './App.css';
 import Dashboard from "./components/Dashboard";
 
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import SensorGraphsPage from "./components/SensorGraphsPage";
 
 function App() {
   return (
     <Provider>
-      <Layout>
-        <Dashboard />
-      </Layout>
+      <Router>
+        <Routes>
+          <Route path="/" element={
+            <Layout>
+              <Dashboard />
+            </Layout>
+          } />
+          <Route path="/graphs" element={
+            <Layout>
+              <SensorGraphsPage />
+            </Layout>
+          } />
+          <Route path="/graphs/:frequency" element={
+            <Layout>
+              <SensorGraphsPage />
+            </Layout>
+          } />
+        </Routes>
+      </Router>
     </Provider>
   );
 }

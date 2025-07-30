@@ -1,7 +1,8 @@
-import { Box, Flex } from '@chakra-ui/react';
+import { Box, Flex, Text } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import FrequencyFilter from './FrequencyFilter';
 import PacketTable from './PacketTable';
+import { Link } from 'react-router-dom';
 
 type Packet = {
   _id: string;
@@ -46,7 +47,7 @@ const Dashboard = () => {
       ? packets
       : packets.filter((p) => selectedFrequencies.includes(p.frequency));
 
-  return (
+   return (
     <Flex flex="1">
       <Box
         minW="220px"
@@ -55,6 +56,11 @@ const Dashboard = () => {
         py={6}
         bg="gray.900"
       >
+        <Box mb={4}>
+          <Link to="/graphs">
+            <Text color="blue.400">View Graphs →</Text>
+          </Link>
+        </Box>
         <FrequencyFilter
           packets={packets}
           selectedFrequencies={selectedFrequencies}
