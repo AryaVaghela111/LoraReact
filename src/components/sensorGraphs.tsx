@@ -12,7 +12,7 @@ import {
   TimeScale,
   type ChartOptions
 } from 'chart.js';
-import { useRef, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import 'chartjs-adapter-date-fns';
 
 // Register ChartJS components
@@ -32,11 +32,9 @@ type Packet = {
   timestamp: string;
   message: string;
   frequency: number;
-  __v?: number;
 };
 
 type SensorData = {
-  timestamp: Date;
   temp?: number | null;
   pulse?: number | null;
   accx?: number | null;
@@ -47,36 +45,29 @@ type SensorData = {
   gyroz?: number | null;
 };
 
-const parseMessage = (message: string): Omit<SensorData, 'timestamp'> => {
+const parseMessage = (message: string): SensorData => {
   if (!message) return {};
-  
-  const result: Omit<SensorData, 'timestamp'> = {};
-  
-  // Extract all sensor values using regex
-  const tempMatch = message.match(/temp:\s*([0-9.]+)/i);
-  const pulseMatch = message.match(/pulse:\s*([0-9.]+)/i);
-  const accxMatch = message.match(/accx:\s*([0-9.]+)/i);
-  const accyMatch = message.match(/accy:\s*([0-9.]+)/i);
-  const acczMatch = message.match(/accz:\s*([0-9.]+)/i);
-  const gyroxMatch = message.match(/gyrox:\s*([0-9.]+)/i);
-  const gyroyMatch = message.match(/gyroy:\s*([0-9.]+)/i);
-  const gyrozMatch = message.match(/gyroz:\s*([0-9.]+)/i);
 
-  if (tempMatch) result.temp = parseFloat(tempMatch[1]);
-  if (pulseMatch) result.pulse = parseFloat(pulseMatch[1]);
-  if (accxMatch) result.accx = parseFloat(accxMatch[1]);
-  if (accyMatch) result.accy = parseFloat(accyMatch[1]);
-  if (acczMatch) result.accz = parseFloat(acczMatch[1]);
-  if (gyroxMatch) result.gyrox = parseFloat(gyroxMatch[1]);
-  if (gyroyMatch) result.gyroy = parseFloat(gyroyMatch[1]);
-  if (gyrozMatch) result.gyroz = parseFloat(gyrozMatch[1]);
-  
-  return result;
+  const extract = (key: string) => {
+    const match = message.match(new RegExp(`${key}:\\s*([0-9.]+)`, 'i'));
+    return match ? parseFloat(match[1]) : null;
+  };
+
+  return {
+    temp: extract('temp'),
+    pulse: extract('pulse'),
+    accx: extract('accx'),
+    accy: extract('accy'),
+    accz: extract('accz'),
+    gyrox: extract('gyrox'),
+    gyroy: extract('gyroy'),
+    gyroz: extract('gyroz'),
+  };
 };
 
-const SingleGraph = ({ 
-  title, 
-  data, 
+const SingleGraph = ({
+  title,
+  data,
   color,
   yAxisTitle,
   unit
@@ -87,152 +78,116 @@ const SingleGraph = ({
   yAxisTitle: string;
   unit?: string;
 }) => {
-  const chartRef = useRef<ChartJS<'line', { x: Date; y: number | null }[], unknown> | null>(null);
+  // Always take the newest 6 points
+  const limitedData = [...data].sort((a, b) => a.x.getTime() - b.x.getTime()).slice(-6);
 
-  const MAX_POINTS = 6;
-const limitedData = data.slice(-MAX_POINTS);
+  // Find time range
+  const minTime = limitedData.length ? limitedData[0].x.getTime() : Date.now();
+  const maxTime = limitedData.length ? limitedData[limitedData.length - 1].x.getTime() : Date.now();
+  const rangeMs = maxTime - minTime;
 
-// Extract formatted labels
-const labels = limitedData.map(d => {
-  const date = new Date(d.x);
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-});
+  // Dynamically pick unit
+  let timeUnit: 'second' | 'minute' | 'hour' | 'day' = 'second';
+  if (rangeMs > 1000 * 60 * 60 * 6) timeUnit = 'day';
+  else if (rangeMs > 1000 * 60 * 60) timeUnit = 'hour';
+  else if (rangeMs > 1000 * 60) timeUnit = 'minute';
 
   const chartData = {
-  labels,
-  datasets: [
-    {
-      label: yAxisTitle + (unit ? ` (${unit})` : ''),
-      data: limitedData.map(d => d.y),
-      borderColor: color,
-      backgroundColor: color.replace(')', ', 0.15)').replace('rgb', 'rgba'),
-      borderWidth: 2.5,
-      pointRadius: 4,
-      pointHoverRadius: 6,
-      pointBackgroundColor: color,
-      tension: 0.3,
-      fill: true
-    }
-  ],
-};
+    datasets: [
+      {
+        label: yAxisTitle + (unit ? ` (${unit})` : ''),
+        data: limitedData,
+        borderColor: color,
+        backgroundColor: color.replace(')', ', 0.15)').replace('rgb', 'rgba'),
+        borderWidth: 2.5,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        pointBackgroundColor: color,
+        tension: 0.3,
+        fill: true
+      }
+    ]
+  };
 
-const options: ChartOptions<'line'> = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    title: {
-      display: true,
-      text: title,
-      font: { size: 16, weight: 'bold' },
-      color: '#fff'
-    },
-    legend: { display: false },
-    tooltip: {
-      mode: 'index',
-      intersect: false,
-      backgroundColor: 'rgba(30, 30, 30, 0.9)',
-      titleFont: { size: 13, weight: 'bold' },
-      bodyFont: { size: 12 }
-    }
-  },
-  scales: {
-    x: {
-      type: 'category', // Makes points equidistant
+  const options: ChartOptions<'line'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
       title: {
         display: true,
-        text: 'Time',
-        color: '#ddd'
+        text: title,
+        font: { size: 16, weight: 'bold' },
+        color: '#fff'
       },
-      grid: {
-        color: 'rgba(255, 255, 255, 0.08)'
-      },
-      ticks: {
-        color: '#ccc'
+      legend: { display: false },
+      tooltip: {
+        mode: 'index',
+        intersect: false,
+        backgroundColor: 'rgba(30, 30, 30, 0.9)',
+        titleFont: { size: 13, weight: 'bold' },
+        bodyFont: { size: 12 }
       }
     },
-    y: {
-      title: {
-        display: true,
-        text: yAxisTitle + (unit ? ` (${unit})` : ''),
-        color: '#ddd'
+    scales: {
+      x: {
+        type: 'time',
+        time: {
+          unit: timeUnit,
+          displayFormats: {
+            second: 'HH:mm:ss',
+            minute: 'HH:mm',
+            hour: 'HH:mm',
+            day: 'MMM d'
+          }
+        },
+        ticks: { color: '#ccc' },
+        title: { display: true, text: 'Time', color: '#ddd' },
+        grid: { color: 'rgba(255, 255, 255, 0.08)' }
       },
-      grid: {
-        color: 'rgba(255, 255, 255, 0.08)'
-      },
-      ticks: {
-        color: '#ccc'
+      y: {
+        title: {
+          display: true,
+          text: yAxisTitle + (unit ? ` (${unit})` : ''),
+          color: '#ddd'
+        },
+        grid: { color: 'rgba(255, 255, 255, 0.08)' },
+        ticks: { color: '#ccc' }
       }
     }
-  }
-};
-
-  useEffect(() => {
-    const currentChart = chartRef.current;
-    return () => {
-      if (currentChart) {
-        currentChart.destroy();
-      }
-    };
-  }, []);
+  };
 
   return (
     <Box height="400px" position="relative" mb={4}>
-      <Line
-        options={options}
-        data={chartData}
-      />
+      <Line options={options} data={chartData} />
     </Box>
   );
 };
 
+
 const SensorGraphs = ({ packets }: { packets: Packet[] }) => {
   const [isLoading, setIsLoading] = useState(true);
 
-  // Process the last 20 packets
-  const last20Packets = [...packets]
+  // Get latest 6 packets only
+  const latestPackets = [...packets]
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-    .slice(0, 20);
-  
-  // Prepare data for all 8 sensors
-  const tempData = last20Packets.map(packet => ({
-    x: new Date(packet.timestamp),
-    y: parseMessage(packet.message).temp ?? null
-  }));
+    .slice(0, 6)
+    .reverse(); // oldest first for plotting
 
-  const pulseData = last20Packets.map(packet => ({
-    x: new Date(packet.timestamp),
-    y: parseMessage(packet.message).pulse ?? null
-  }));
+  // Build datasets
+  const buildData = (key: keyof SensorData) =>
+    latestPackets.map(packet => ({
+      x: new Date(packet.timestamp),
+      y: parseMessage(packet.message)[key] ?? null
+    }));
 
-  const accxData = last20Packets.map(packet => ({
-    x: new Date(packet.timestamp),
-    y: parseMessage(packet.message).accx ?? null
-  }));
-
-  const accyData = last20Packets.map(packet => ({
-    x: new Date(packet.timestamp),
-    y: parseMessage(packet.message).accy ?? null
-  }));
-
-  const acczData = last20Packets.map(packet => ({
-    x: new Date(packet.timestamp),
-    y: parseMessage(packet.message).accz ?? null
-  }));
-
-  const gyroxData = last20Packets.map(packet => ({
-    x: new Date(packet.timestamp),
-    y: parseMessage(packet.message).gyrox ?? null
-  }));
-
-  const gyroyData = last20Packets.map(packet => ({
-    x: new Date(packet.timestamp),
-    y: parseMessage(packet.message).gyroy ?? null
-  }));
-
-  const gyrozData = last20Packets.map(packet => ({
-    x: new Date(packet.timestamp),
-    y: parseMessage(packet.message).gyroz ?? null
-  }));
+  const tempData = buildData('temp');
+  const pulseData = buildData('pulse');
+  const accxData = buildData('accx');
+  const accyData = buildData('accy');
+  const acczData = buildData('accz');
+  const gyroxData = buildData('gyrox');
+  const gyroyData = buildData('gyroy');
+  const gyrozData = buildData('gyroz');
 
   useEffect(() => {
     if (packets.length > 0) {
@@ -245,91 +200,38 @@ const SensorGraphs = ({ packets }: { packets: Packet[] }) => {
       <Text fontSize="xl" fontWeight="bold" mb={4}>
         Sensor Data Visualization
       </Text>
-      
+
       {isLoading ? (
         <Flex justify="center" align="center" height="400px">
           <Spinner size="lg" />
         </Flex>
       ) : (
         <SimpleGrid columns={4} gap={5} rowGap={34}>
-  {/* Row 1 */}
-  <Box height="300px" mb={14}>
-    <SingleGraph 
-      title="Temperature" 
-      data={tempData} 
-      color="rgb(255, 99, 132)" 
-      yAxisTitle="Temperature" 
-      unit="°C"
-    />
-  </Box>
-  
-  <Box height="300px" mb={14}>
-    <SingleGraph 
-      title="Acceleration X" 
-      data={accxData} 
-      color="rgb(255, 159, 64)" 
-      yAxisTitle="Accel X" 
-      unit="g"
-    />
-  </Box>
-  <Box height="300px" mb={14}>
-    <SingleGraph 
-      title="Acceleration Y" 
-      data={accyData} 
-      color="rgb(255, 206, 86)" 
-      yAxisTitle="Accel Y" 
-      unit="g"
-    />
-  </Box>
-  <Box height="300px" mb={14}>
-    <SingleGraph 
-      title="Acceleration Z" 
-      data={acczData} 
-      color="rgb(153, 102, 255)" 
-      yAxisTitle="Accel Z" 
-      unit="g"
-    />
-  </Box>
-
-  {/* Row 2 */}
-  <Box height="300px" mb={14}>
-    <SingleGraph 
-      title="Pulse Rate" 
-      data={pulseData} 
-      color="rgb(54, 162, 235)" 
-      yAxisTitle="Pulse" 
-      unit="BPM"
-    />
-  </Box>
-  
-  <Box height="300px" mb={14}>
-    <SingleGraph 
-      title="Gyroscope X" 
-      data={gyroxData} 
-      color="rgb(75, 192, 192)" 
-      yAxisTitle="Gyro X" 
-      unit="°/s"
-    />
-  </Box>
-  <Box height="300px" mb={14}>
-    <SingleGraph 
-      title="Gyroscope Y" 
-      data={gyroyData} 
-      color="rgb(255, 99, 255)" 
-      yAxisTitle="Gyro Y" 
-      unit="°/s"
-    />
-  </Box>
-  <Box height="300px" mb={14}>
-    <SingleGraph 
-      title="Gyroscope Z" 
-      data={gyrozData} 
-      color="rgb(54, 162, 135)" 
-      yAxisTitle="Gyro Z" 
-      unit="°/s"
-    />
-  </Box>
-</SimpleGrid>
+          <Box height="300px" mb={14}>
+            <SingleGraph title="Temperature" data={tempData} color="rgb(255, 99, 132)" yAxisTitle="Temperature" unit="°C" />
+          </Box>
+          <Box height="300px" mb={14}>
+            <SingleGraph title="Acceleration X" data={accxData} color="rgb(255, 159, 64)" yAxisTitle="Accel X" unit="g" />
+          </Box>
+          <Box height="300px" mb={14}>
+            <SingleGraph title="Acceleration Y" data={accyData} color="rgb(255, 206, 86)" yAxisTitle="Accel Y" unit="g" />
+          </Box>
+          <Box height="300px" mb={14}>
+            <SingleGraph title="Acceleration Z" data={acczData} color="rgb(153, 102, 255)" yAxisTitle="Accel Z" unit="g" />
+          </Box>
+          <Box height="300px" mb={14}>
+            <SingleGraph title="Pulse Rate" data={pulseData} color="rgb(54, 162, 235)" yAxisTitle="Pulse" unit="BPM" />
+          </Box>
+          <Box height="300px" mb={14}>
+            <SingleGraph title="Gyroscope X" data={gyroxData} color="rgb(75, 192, 192)" yAxisTitle="Gyro X" unit="°/s" />
+          </Box>
+          <Box height="300px" mb={14}>
+            <SingleGraph title="Gyroscope Y" data={gyroyData} color="rgb(255, 99, 255)" yAxisTitle="Gyro Y" unit="°/s" />
+          </Box>
+          <Box height="300px" mb={14}>
+            <SingleGraph title="Gyroscope Z" data={gyrozData} color="rgb(54, 162, 135)" yAxisTitle="Gyro Z" unit="°/s" />
+          </Box>
+        </SimpleGrid>
       )}
     </Box>
   );

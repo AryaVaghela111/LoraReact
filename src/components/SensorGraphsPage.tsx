@@ -38,18 +38,19 @@ const SensorGraphsPage = () => {
   const [showIdFilter, setShowIdFilter] = useState(true);
 
   const loadPackets = async (currentFreqs = selectedFrequencies) => {
-    try {
-      const freqParam =
-        currentFreqs.length > 0
-          ? `&frequencies=${currentFreqs.join(",")}`
-          : "";
-      const res = await fetch(`/packets?limit=1000${freqParam}`);
-      const data = await res.json();
-      setPackets(Array.isArray(data.packets) ? data.packets : []);
-    } catch (err) {
-      console.error("❌ Failed to load packets:", err);
-    }
-  };
+  try {
+    const freqParam =
+      currentFreqs.length > 0
+        ? `&frequencies=${currentFreqs.join(",")}`
+        : "";
+    const res = await fetch(`/packets?limit=1000${freqParam}&sort=-timestamp`);
+    const data = await res.json();
+    setPackets(Array.isArray(data.packets) ? data.packets : []);
+  } catch (err) {
+    console.error("❌ Failed to load packets:", err);
+  }
+};
+
 
   useEffect(() => {
     loadPackets(selectedFrequencies);

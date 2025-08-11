@@ -49,6 +49,7 @@ const Dashboard = () => {
         )}${freqParam}&sort=-timestamp`
       );
       const data = await res.json();
+      
       setPackets(Array.isArray(data.packets) ? data.packets : []);
       setPage(data.page);
       setPages(data.pages);
@@ -84,6 +85,9 @@ const Dashboard = () => {
       const id = match ? parseInt(match[1], 10) : null;
       return id !== null && selectedIds.includes(id);
     });
+    console.log(filteredPackets);
+    
+    
 
   return (
     <Flex flex="1">
