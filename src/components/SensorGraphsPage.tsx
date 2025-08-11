@@ -1,10 +1,11 @@
-import { Box, Flex, Text } from '@chakra-ui/react';
+import { Box, Button, Flex} from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import FrequencyFilter from './FrequencyFilter';
 import SensorGraphs from './sensorGraphs';
 import { useAutoRefresh } from './AutoRefreshContext';
 import AutoRefreshToggle from './AutoRefreshToggle';
+import { ArrowLeft } from 'lucide-react';
 
 type Packet = {
   _id: string;
@@ -60,10 +61,13 @@ const SensorGraphsPage = () => {
         bg="gray.900"
       >
         <Box mt={4}>
-          <Link to="/">
-            <Text color="blue.400">← Back to Dashboard</Text>
-          </Link>
-        </Box>
+  <Link to="/">
+    <Button>
+      <ArrowLeft />
+      Back to Dashboard
+    </Button>
+  </Link>
+</Box>
         <FrequencyFilter
           packets={packets}
           selectedFrequencies={selectedFrequencies}

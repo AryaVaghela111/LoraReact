@@ -1,4 +1,4 @@
-import { Box, Flex, Text } from '@chakra-ui/react';
+import { Box, Button, Flex} from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import FrequencyFilter from './FrequencyFilter';
 import PacketTable from './PacketTable';
@@ -74,7 +74,7 @@ useEffect(() => {
       >
         <Box mb={4}>
         <Link to="/graphs">
-          <Text color="blue.400">View Graphs →</Text>
+          <Button>View Graphs →</Button>
         </Link>
       </Box>
 
