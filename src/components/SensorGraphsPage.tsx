@@ -17,25 +17,41 @@ const SensorGraphsPage = () => {
   const [selectedFrequencies, setSelectedFrequencies] = useState<number[]>([]);
 
   useEffect(() => {
-    const loadPackets = async () => {
-      try {
-        let url = '/packets?limit=1000'; // Get more data for graphs
-        if (frequency) {
-          url += `&frequency=${frequency}`;
-          setSelectedFrequencies([parseFloat(frequency)]);
-        }
-        
-        const res = await fetch(url);
-        const data = await res.json();
-        setPackets(Array.isArray(data.packets) ? data.packets : []);
-      } catch (err) {
-        console.error('Failed to load packets:', err);
-      } finally {
-      }
-    };
+  let intervalId: number;
 
-    loadPackets();
-  }, [frequency]);
+  const loadPackets = async () => {
+    try {
+      let url = '/packets?limit=1000'; // Get more data for graphs
+      if (frequency) {
+        url += `&frequency=${frequency}`;
+        setSelectedFrequencies([parseFloat(frequency)]);
+      }
+
+      const res = await fetch(url);
+      const data = await res.json();
+
+      // Optional: Only update if there's actually new data
+      setPackets(prevPackets => {
+        if (JSON.stringify(prevPackets) !== JSON.stringify(data.packets)) {
+          return Array.isArray(data.packets) ? data.packets : [];
+        }
+        return prevPackets;
+      });
+
+    } catch (err) {
+      console.error('Failed to load packets:', err);
+    }
+  };
+
+  // Initial load
+  loadPackets();
+
+  // Poll every 3 seconds
+  intervalId = setInterval(loadPackets, 3000);
+
+  // Cleanup on unmount
+  return () => clearInterval(intervalId);
+}, [frequency]);
 
   return (
     <Flex flex="1">

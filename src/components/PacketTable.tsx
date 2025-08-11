@@ -19,7 +19,6 @@ type Packet = {
 
 type PacketTableProps = {
   packets: Packet[];
-  loading: boolean;
   page: number;
   pages: number;
   search: string;
@@ -52,7 +51,6 @@ const formatTimestamp = (iso: string) => {
 
 const PacketTable = ({
   packets,
-  loading,
   page,
   pages,
   search,
@@ -78,9 +76,7 @@ const PacketTable = ({
     />
   </InputGroup>
 
-      {loading ? (
-        <Spinner size="lg" />
-      ) : (
+      
         <>
           <Table.Root variant="outline" size="md">
             <Table.Header>
@@ -115,7 +111,6 @@ const PacketTable = ({
             </Button>
           </HStack>
         </>
-      )}
     </Box>
   );
 };

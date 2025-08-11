@@ -13,7 +13,6 @@ type Packet = {
 
 const Dashboard = () => {
   const [packets, setPackets] = useState<Packet[]>([]);
-  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
   const [search, setSearch] = useState('');
@@ -21,25 +20,27 @@ const Dashboard = () => {
 
   const loadPackets = async (pageNum: number = 1, currentSearch = search) => {
     try {
-      setLoading(true);
       const res = await fetch(
-        `/packets?page=${pageNum}&limit=25&search=${encodeURIComponent(currentSearch)}&sort= -timestamp`
+        `/packets?page=${pageNum}&limit=25&search=${encodeURIComponent(currentSearch)}&sort=-timestamp`
       );
       const data = await res.json();
-
       setPackets(Array.isArray(data.packets) ? data.packets : []);
       setPage(data.page);
       setPages(data.pages);
     } catch (err) {
       console.error('❌ Failed to load packets:', err);
     } finally {
-      setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadPackets(1);
-  }, []);
+    loadPackets(1); // initial fetch
+    const intervalId: number = window.setInterval(
+      () => loadPackets(page, search),
+      3000
+    );
+    return () => clearInterval(intervalId);
+  }, [page, search]);
 
   // Apply frequency filter *after* fetching
   const filteredPackets =
@@ -71,7 +72,6 @@ const Dashboard = () => {
       <Box flex="1" px={6} py={6}>
         <PacketTable
           packets={filteredPackets}
-          loading={loading}
           page={page}
           pages={pages}
           search={search}
