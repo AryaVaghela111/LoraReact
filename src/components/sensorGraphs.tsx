@@ -251,88 +251,83 @@ const SensorGraphs = ({ packets }: { packets: Packet[] }) => {
           <Spinner size="lg" />
         </Flex>
       ) : (
-        <SimpleGrid columns={3} gap={5} rowGap={34}>
-          {/* Row 1 */}
-          <Box height="300px" mb={9}>
-            <SingleGraph 
-              title="Temperature" 
-              data={tempData} 
-              color="rgb(255, 99, 132)" 
-              yAxisTitle="Temperature" 
-              unit="°C"
-            />
-          </Box>
-          <Box height="300px" mb={9}>
-            <SingleGraph 
-              title="Pulse Rate" 
-              data={pulseData} 
-              color="rgb(54, 162, 235)" 
-              yAxisTitle="Pulse" 
-              unit="BPM"
-            />
-          </Box>
-          <Box height="300px" mb={9}>
-            <SingleGraph 
-              title="Acceleration X" 
-              data={accxData} 
-              color="rgb(255, 159, 64)" 
-              yAxisTitle="Accel X" 
-              unit="g"
-            />
-          </Box>
+        <SimpleGrid columns={4} gap={5} rowGap={34}>
+  {/* Row 1 */}
+  <Box height="300px" mb={9}>
+    <SingleGraph 
+      title="Temperature" 
+      data={tempData} 
+      color="rgb(255, 99, 132)" 
+      yAxisTitle="Temperature" 
+      unit="°C"
+    />
+  </Box>
+  <Box height="300px" mb={9}>
+    <SingleGraph 
+      title="Pulse Rate" 
+      data={pulseData} 
+      color="rgb(54, 162, 235)" 
+      yAxisTitle="Pulse" 
+      unit="BPM"
+    />
+  </Box>
+  <Box height="300px" mb={9}>
+    <SingleGraph 
+      title="Acceleration X" 
+      data={accxData} 
+      color="rgb(255, 159, 64)" 
+      yAxisTitle="Accel X" 
+      unit="g"
+    />
+  </Box>
+  <Box height="300px" mb={9}>
+    <SingleGraph 
+      title="Acceleration Y" 
+      data={accyData} 
+      color="rgb(255, 206, 86)" 
+      yAxisTitle="Accel Y" 
+      unit="g"
+    />
+  </Box>
 
-          {/* Row 2 */}
-          <Box height="300px" mb={9}>
-            <SingleGraph 
-              title="Acceleration Y" 
-              data={accyData} 
-              color="rgb(255, 206, 86)" 
-              yAxisTitle="Accel Y" 
-              unit="g"
-            />
-          </Box>
-          <Box height="300px" mb={9}>
-            <SingleGraph 
-              title="Acceleration Z" 
-              data={acczData} 
-              color="rgb(153, 102, 255)" 
-              yAxisTitle="Accel Z" 
-              unit="g"
-            />
-          </Box>
-          <Box height="300px" mb={9}>
-            <SingleGraph 
-              title="Gyroscope X" 
-              data={gyroxData} 
-              color="rgb(75, 192, 192)" 
-              yAxisTitle="Gyro X" 
-              unit="°/s"
-            />
-          </Box>
-
-          {/* Row 3 */}
-          <Box height="300px" mb={12}>
-            <SingleGraph 
-              title="Gyroscope Y" 
-              data={gyroyData} 
-              color="rgb(255, 99, 255)" 
-              yAxisTitle="Gyro Y" 
-              unit="°/s"
-            />
-          </Box>
-          <Box height="300px" mb={12}>
-            <SingleGraph 
-              title="Gyroscope Z" 
-              data={gyrozData} 
-              color="rgb(54, 162, 135)" 
-              yAxisTitle="Gyro Z" 
-              unit="°/s"
-            />
-          </Box>
-          <Box height="300px" mb={12}>
-            {/* Empty box for 3x3 grid */}
-          </Box>
-        </SimpleGrid>
+  {/* Row 2 */}
+  <Box height="300px" mb={9}>
+    <SingleGraph 
+      title="Acceleration Z" 
+      data={acczData} 
+      color="rgb(153, 102, 255)" 
+      yAxisTitle="Accel Z" 
+      unit="g"
+    />
+  </Box>
+  <Box height="300px" mb={9}>
+    <SingleGraph 
+      title="Gyroscope X" 
+      data={gyroxData} 
+      color="rgb(75, 192, 192)" 
+      yAxisTitle="Gyro X" 
+      unit="°/s"
+    />
+  </Box>
+  <Box height="300px" mb={9}>
+    <SingleGraph 
+      title="Gyroscope Y" 
+      data={gyroyData} 
+      color="rgb(255, 99, 255)" 
+      yAxisTitle="Gyro Y" 
+      unit="°/s"
+    />
+  </Box>
+  <Box height="300px" mb={9}>
+    <SingleGraph 
+      title="Gyroscope Z" 
+      data={gyrozData} 
+      color="rgb(54, 162, 135)" 
+      yAxisTitle="Gyro Z" 
+      unit="°/s"
+    />
+  </Box>
+</SimpleGrid>
       )}
     </Box>
   );

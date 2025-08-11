@@ -59,6 +59,11 @@ const SensorGraphsPage = () => {
         py={6}
         bg="gray.900"
       >
+        <Box mt={4}>
+          <Link to="/">
+            <Text color="blue.400">← Back to Dashboard</Text>
+          </Link>
+        </Box>
         <FrequencyFilter
           packets={packets}
           selectedFrequencies={selectedFrequencies}
@@ -68,11 +73,6 @@ const SensorGraphsPage = () => {
           }}
         />
         <AutoRefreshToggle />
-        <Box mt={4}>
-          <Link to="/">
-            <Text color="blue.400">← Back to Dashboard</Text>
-          </Link>
-        </Box>
       </Box>
 
       <Box flex="1" px={6} py={6}>
