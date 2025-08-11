@@ -1,6 +1,5 @@
 import {
   Box,
-  Spinner,
   Text,
   Input,
   InputGroup,
