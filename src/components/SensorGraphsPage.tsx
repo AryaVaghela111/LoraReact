@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import FrequencyFilter from './FrequencyFilter';
 import SensorGraphs from './sensorGraphs';
+import { useAutoRefresh } from './AutoRefreshContext';
+import AutoRefreshToggle from './AutoRefreshToggle';
 
 type Packet = {
   _id: string;
@@ -14,44 +16,39 @@ type Packet = {
 const SensorGraphsPage = () => {
   const { frequency } = useParams();
   const [packets, setPackets] = useState<Packet[]>([]);
-  const [selectedFrequencies, setSelectedFrequencies] = useState<number[]>([]);
+  const [selectedFrequencies, setSelectedFrequencies] = useState<number[]>(
+    frequency ? [parseFloat(frequency)] : []
+  );
+  const { isAutoRefresh } = useAutoRefresh();
 
-  useEffect(() => {
-  let intervalId: number;
-
-  const loadPackets = async () => {
+  const loadPackets = async (currentFreqs = selectedFrequencies) => {
     try {
-      let url = '/packets?limit=1000'; // Get more data for graphs
-      if (frequency) {
-        url += `&frequency=${frequency}`;
-        setSelectedFrequencies([parseFloat(frequency)]);
-      }
-
-      const res = await fetch(url);
+      const freqParam =
+        currentFreqs.length > 0
+          ? `&frequencies=${currentFreqs.join(',')}`
+          : '';
+      const res = await fetch(`/packets?limit=1000${freqParam}`);
       const data = await res.json();
 
-      // Optional: Only update if there's actually new data
-      setPackets(prevPackets => {
-        if (JSON.stringify(prevPackets) !== JSON.stringify(data.packets)) {
-          return Array.isArray(data.packets) ? data.packets : [];
-        }
-        return prevPackets;
-      });
-
+      setPackets(Array.isArray(data.packets) ? data.packets : []);
     } catch (err) {
-      console.error('Failed to load packets:', err);
+      console.error('❌ Failed to load packets:', err);
     }
   };
 
-  // Initial load
-  loadPackets();
+  useEffect(() => {
+    // Initial load
+    loadPackets(selectedFrequencies);
 
-  // Poll every 3 seconds
-  intervalId = setInterval(loadPackets, 3000);
+    if (!isAutoRefresh) return;
 
-  // Cleanup on unmount
-  return () => clearInterval(intervalId);
-}, [frequency]);
+    const intervalId: number = window.setInterval(
+      () => loadPackets(selectedFrequencies),
+      3000
+    );
+
+    return () => clearInterval(intervalId);
+  }, [selectedFrequencies, isAutoRefresh]);
 
   return (
     <Flex flex="1">
@@ -65,15 +62,12 @@ const SensorGraphsPage = () => {
         <FrequencyFilter
           packets={packets}
           selectedFrequencies={selectedFrequencies}
-          onChange={(freqs) => {
-            // Navigate to the selected frequency's graph
-            if (freqs.length > 0) {
-              window.location.href = `/graphs/${freqs[0]}`;
-            } else {
-              window.location.href = '/graphs';
-            }
+          onChange={(newFreqs) => {
+            setSelectedFrequencies(newFreqs);
+            loadPackets(newFreqs);
           }}
         />
+        <AutoRefreshToggle />
         <Box mt={4}>
           <Link to="/">
             <Text color="blue.400">← Back to Dashboard</Text>
