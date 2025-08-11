@@ -12,7 +12,6 @@ import {
   TimeScale,
   type ChartOptions
 } from 'chart.js';
-import { enUS } from 'date-fns/locale';
 import { useRef, useEffect, useState } from 'react';
 import 'chartjs-adapter-date-fns';
 
