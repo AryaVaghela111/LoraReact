@@ -253,7 +253,7 @@ const SensorGraphs = ({ packets }: { packets: Packet[] }) => {
       ) : (
         <SimpleGrid columns={4} gap={5} rowGap={34}>
   {/* Row 1 */}
-  <Box height="300px" mb={9}>
+  <Box height="300px" mb={14}>
     <SingleGraph 
       title="Temperature" 
       data={tempData} 
@@ -262,16 +262,8 @@ const SensorGraphs = ({ packets }: { packets: Packet[] }) => {
       unit="°C"
     />
   </Box>
-  <Box height="300px" mb={9}>
-    <SingleGraph 
-      title="Pulse Rate" 
-      data={pulseData} 
-      color="rgb(54, 162, 235)" 
-      yAxisTitle="Pulse" 
-      unit="BPM"
-    />
-  </Box>
-  <Box height="300px" mb={9}>
+  
+  <Box height="300px" mb={14}>
     <SingleGraph 
       title="Acceleration X" 
       data={accxData} 
@@ -280,7 +272,7 @@ const SensorGraphs = ({ packets }: { packets: Packet[] }) => {
       unit="g"
     />
   </Box>
-  <Box height="300px" mb={9}>
+  <Box height="300px" mb={14}>
     <SingleGraph 
       title="Acceleration Y" 
       data={accyData} 
@@ -289,9 +281,7 @@ const SensorGraphs = ({ packets }: { packets: Packet[] }) => {
       unit="g"
     />
   </Box>
-
-  {/* Row 2 */}
-  <Box height="300px" mb={9}>
+  <Box height="300px" mb={14}>
     <SingleGraph 
       title="Acceleration Z" 
       data={acczData} 
@@ -300,7 +290,19 @@ const SensorGraphs = ({ packets }: { packets: Packet[] }) => {
       unit="g"
     />
   </Box>
-  <Box height="300px" mb={9}>
+
+  {/* Row 2 */}
+  <Box height="300px" mb={14}>
+    <SingleGraph 
+      title="Pulse Rate" 
+      data={pulseData} 
+      color="rgb(54, 162, 235)" 
+      yAxisTitle="Pulse" 
+      unit="BPM"
+    />
+  </Box>
+  
+  <Box height="300px" mb={14}>
     <SingleGraph 
       title="Gyroscope X" 
       data={gyroxData} 
@@ -309,7 +311,7 @@ const SensorGraphs = ({ packets }: { packets: Packet[] }) => {
       unit="°/s"
     />
   </Box>
-  <Box height="300px" mb={9}>
+  <Box height="300px" mb={14}>
     <SingleGraph 
       title="Gyroscope Y" 
       data={gyroyData} 
@@ -318,7 +320,7 @@ const SensorGraphs = ({ packets }: { packets: Packet[] }) => {
       unit="°/s"
     />
   </Box>
-  <Box height="300px" mb={9}>
+  <Box height="300px" mb={14}>
     <SingleGraph 
       title="Gyroscope Z" 
       data={gyrozData} 

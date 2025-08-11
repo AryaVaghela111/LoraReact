@@ -6,7 +6,7 @@ const AutoRefreshToggle = () => {
 
   return (
     <Box mt={4}>
-      <Text mb={2} fontWeight="bold">Auto Refresh</Text>
+      <Text mb={2} fontWeight="bold">Live Data</Text>
       <Button
         colorScheme={isAutoRefresh ? 'red' : 'green'}
         size="sm"
