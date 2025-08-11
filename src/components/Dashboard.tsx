@@ -23,7 +23,7 @@ const Dashboard = () => {
     try {
       setLoading(true);
       const res = await fetch(
-        `/packets?page=${pageNum}&limit=25&search=${encodeURIComponent(currentSearch)}`
+        `/packets?page=${pageNum}&limit=25&search=${encodeURIComponent(currentSearch)}&sort=-timestamp`
       );
       const data = await res.json();
 

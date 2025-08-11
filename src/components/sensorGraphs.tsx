@@ -1,4 +1,4 @@
-import { Box, Text, Spinner, Flex } from '@chakra-ui/react';
+import { Box, Text, Spinner, Flex, SimpleGrid } from '@chakra-ui/react';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -15,7 +15,6 @@ import {
 import { enUS } from 'date-fns/locale';
 import { useRef, useEffect, useState } from 'react';
 import 'chartjs-adapter-date-fns';
-import React from 'react';
 
 // Register ChartJS components
 ChartJS.register(
@@ -64,58 +63,28 @@ const parseMessage = (message: string): Omit<SensorData, 'timestamp'> => {
   return result;
 };
 
-const SensorGraphs = ({ packets }: { packets: Packet[] }) => {
+const SingleGraph = ({ 
+  title, 
+  data, 
+  color,
+  yAxisTitle,
+  unit
+}: {
+  title: string;
+  data: { x: Date; y: number | null }[];
+  color: string;
+  yAxisTitle: string;
+  unit?: string;
+}) => {
   const chartRef = useRef<ChartJS<'line', { x: Date; y: number | null }[], unknown> | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
-  // Process the last 20 packets
-  const last20Packets = [...packets]
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-    .slice(0, 20);
-  console.log(last20Packets);
-  
-  // Prepare chart data
   const chartData = {
     datasets: [
       {
-        label: 'Temperature (°C)',
-        data: last20Packets.map(packet => ({
-          x: new Date(packet.timestamp),
-          y: parseMessage(packet.message).temp ?? null
-        })),
-        borderColor: 'rgb(255, 99, 132)',
-        backgroundColor: 'rgba(255, 99, 132, 0.5)',
-        yAxisID: 'y',
-      },
-      {
-        label: 'Pulse (BPM)',
-        data: last20Packets.map(packet => ({
-          x: new Date(packet.timestamp),
-          y: parseMessage(packet.message).pulse ?? null
-        })),
-        borderColor: 'rgb(54, 162, 235)',
-        backgroundColor: 'rgba(54, 162, 235, 0.5)',
-        yAxisID: 'y1',
-      },
-      {
-        label: 'Accelerometer',
-        data: last20Packets.map(packet => ({
-          x: new Date(packet.timestamp),
-          y: parseMessage(packet.message).acc ?? null
-        })),
-        borderColor: 'rgb(255, 206, 86)',
-        backgroundColor: 'rgba(255, 206, 86, 0.5)',
-        yAxisID: 'y2',
-      },
-      {
-        label: 'Gyroscope',
-        data: last20Packets.map(packet => ({
-          x: new Date(packet.timestamp),
-          y: parseMessage(packet.message).gyro ?? null
-        })),
-        borderColor: 'rgb(75, 192, 192)',
-        backgroundColor: 'rgba(75, 192, 192, 0.5)',
-        yAxisID: 'y3',
+        label: yAxisTitle + (unit ? ` (${unit})` : ''),
+        data: data,
+        borderColor: color,
+        backgroundColor: color.replace(')', ', 0.5)').replace('rgb', 'rgba'),
       }
     ],
   };
@@ -126,13 +95,19 @@ const SensorGraphs = ({ packets }: { packets: Packet[] }) => {
     plugins: {
       title: {
         display: true,
-        text: 'Sensor Data (Last 20 Readings)',
+        text: title,
+      },
+      legend: {
+        display: false
       },
       tooltip: {
         callbacks: {
           title: (context) => {
             const date = new Date(context[0].parsed.x);
             return date.toLocaleString();
+          },
+          label: (context) => {
+            return `${context.dataset.label}: ${context.parsed.y}`;
           }
         }
       }
@@ -161,43 +136,12 @@ const SensorGraphs = ({ packets }: { packets: Packet[] }) => {
       y: {
         title: {
           display: true,
-          text: 'Temperature (°C)'
-        }
-      },
-      y1: {
-        position: 'right',
-        grid: {
-          drawOnChartArea: false,
-        },
-        title: {
-          display: true,
-          text: 'Pulse (BPM)'
-        }
-      },
-      y2: {
-        position: 'right',
-        grid: {
-          drawOnChartArea: false,
-        },
-        title: {
-          display: true,
-          text: 'Accelerometer'
-        }
-      },
-      y3: {
-        position: 'right',
-        grid: {
-          drawOnChartArea: false,
-        },
-        title: {
-          display: true,
-          text: 'Gyroscope'
+          text: yAxisTitle + (unit ? ` (${unit})` : '')
         }
       }
     }
   };
 
-  // Handle chart instance cleanup
   useEffect(() => {
     const currentChart = chartRef.current;
     return () => {
@@ -206,6 +150,46 @@ const SensorGraphs = ({ packets }: { packets: Packet[] }) => {
       }
     };
   }, []);
+
+  return (
+    <Box height="400px" position="relative" mb={4}>
+      <Line
+        ref={chartRef}
+        options={options}
+        data={chartData}
+      />
+    </Box>
+  );
+};
+
+const SensorGraphs = ({ packets }: { packets: Packet[] }) => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Process the last 20 packets
+  const last20Packets = [...packets]
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .slice(0, 20);
+  
+  // Prepare data for each sensor (keep this the same)
+  const tempData = last20Packets.map(packet => ({
+    x: new Date(packet.timestamp),
+    y: parseMessage(packet.message).temp ?? null
+  }));
+
+  const pulseData = last20Packets.map(packet => ({
+    x: new Date(packet.timestamp),
+    y: parseMessage(packet.message).pulse ?? null
+  }));
+
+  const accData = last20Packets.map(packet => ({
+    x: new Date(packet.timestamp),
+    y: parseMessage(packet.message).acc ?? null
+  }));
+
+  const gyroData = last20Packets.map(packet => ({
+    x: new Date(packet.timestamp),
+    y: parseMessage(packet.message).gyro ?? null
+  }));
 
   // Set loading state
   useEffect(() => {
@@ -225,14 +209,42 @@ const SensorGraphs = ({ packets }: { packets: Packet[] }) => {
           <Spinner size="lg" />
         </Flex>
       ) : (
-        <Box height="400px" position="relative">
-          <Line
-            ref={chartRef}
-            options={options}
-            data={chartData}
-            key={last20Packets.length} // Force re-render when data changes
-          />
-        </Box>
+        <SimpleGrid columns={2} >
+          <Box height="400px">
+            <SingleGraph 
+              title="Temperature" 
+              data={tempData} 
+              color="rgb(255, 99, 132)" 
+              yAxisTitle="Temperature" 
+              unit="°C"
+            />
+          </Box>
+          <Box height="400px">
+            <SingleGraph 
+              title="Pulse" 
+              data={pulseData} 
+              color="rgb(54, 162, 235)" 
+              yAxisTitle="Pulse" 
+              unit="BPM"
+            />
+          </Box>
+          <Box height="400px">
+            <SingleGraph 
+              title="Accelerometer" 
+              data={accData} 
+              color="rgb(255, 206, 86)" 
+              yAxisTitle="Accelerometer"
+            />
+          </Box>
+          <Box height="400px">
+            <SingleGraph 
+              title="Gyroscope" 
+              data={gyroData} 
+              color="rgb(75, 192, 192)" 
+              yAxisTitle="Gyroscope"
+            />
+          </Box>
+        </SimpleGrid>
       )}
     </Box>
   );

@@ -14,13 +14,11 @@ type Packet = {
 const SensorGraphsPage = () => {
   const { frequency } = useParams();
   const [packets, setPackets] = useState<Packet[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedFrequencies, setSelectedFrequencies] = useState<number[]>([]);
 
   useEffect(() => {
     const loadPackets = async () => {
       try {
-        setLoading(true);
         let url = '/packets?limit=1000'; // Get more data for graphs
         if (frequency) {
           url += `&frequency=${frequency}`;
@@ -33,7 +31,6 @@ const SensorGraphsPage = () => {
       } catch (err) {
         console.error('Failed to load packets:', err);
       } finally {
-        setLoading(false);
       }
     };
 
