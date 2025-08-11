@@ -1,10 +1,18 @@
-import { Box, Button, Flex} from '@chakra-ui/react';
+import {
+  Box,
+  Button,
+  Collapsible,
+  Flex,
+  Text,
+} from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import FrequencyFilter from './FrequencyFilter';
 import PacketTable from './PacketTable';
-import { Link } from 'react-router-dom';
 import AutoRefreshToggle from './AutoRefreshToggle';
 import { useAutoRefresh } from './AutoRefreshContext';
+import FilterById from './FilterById';
 
 type Packet = {
   _id: string;
@@ -19,52 +27,67 @@ const Dashboard = () => {
   const [pages, setPages] = useState(1);
   const [search, setSearch] = useState('');
   const [selectedFrequencies, setSelectedFrequencies] = useState<number[]>([]);
-  
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+
+  // Collapsible states
+  const [showIdFilter, setShowIdFilter] = useState(true);
+  const [showFreqFilter, setShowFreqFilter] = useState(true);
 
   const loadPackets = async (
-  pageNum: number = 1,
-  currentSearch = search,
-  currentFreqs = selectedFrequencies
-) => {
-  try {
-    const freqParam = currentFreqs.length > 0 ? `&frequencies=${currentFreqs.join(',')}` : '';
-    const res = await fetch(
-      `/packets?page=${pageNum}&limit=25&search=${encodeURIComponent(currentSearch)}${freqParam}&sort=-timestamp`
+    pageNum: number = 1,
+    currentSearch = search,
+    currentFreqs = selectedFrequencies
+  ) => {
+    try {
+      const freqParam =
+        currentFreqs.length > 0
+          ? `&frequencies=${currentFreqs.join(',')}`
+          : '';
+      const res = await fetch(
+        `/packets?page=${pageNum}&limit=25&search=${encodeURIComponent(
+          currentSearch
+        )}${freqParam}&sort=-timestamp`
+      );
+      const data = await res.json();
+      setPackets(Array.isArray(data.packets) ? data.packets : []);
+      setPage(data.page);
+      setPages(data.pages);
+    } catch (err) {
+      console.error('❌ Failed to load packets:', err);
+    }
+  };
+
+  const { isAutoRefresh } = useAutoRefresh();
+
+  useEffect(() => {
+    loadPackets(page, search, selectedFrequencies);
+
+    if (!isAutoRefresh) return;
+
+    const intervalId: number = window.setInterval(
+      () => loadPackets(page, search, selectedFrequencies),
+      3000
     );
-    const data = await res.json();
-    setPackets(Array.isArray(data.packets) ? data.packets : []);
-    setPage(data.page);
-    setPages(data.pages);
-  } catch (err) {
-    console.error('❌ Failed to load packets:', err);
-  }
-};
 
-const { isAutoRefresh } = useAutoRefresh();
+    return () => clearInterval(intervalId);
+  }, [page, search, selectedFrequencies, isAutoRefresh]);
 
-useEffect(() => {
-  // Initial fetch (respect current page)
-  loadPackets(page, search, selectedFrequencies);
+  const filteredPackets = packets
+    .filter((p) =>
+      selectedFrequencies.length === 0
+        ? true
+        : selectedFrequencies.includes(p.frequency)
+    )
+    .filter((p) => {
+      if (selectedIds.length === 0) return true;
+      const match = p.message.match(/id:\s*(\d+)/i);
+      const id = match ? parseInt(match[1], 10) : null;
+      return id !== null && selectedIds.includes(id);
+    });
 
-  if (!isAutoRefresh) return;
-
-  const intervalId: number = window.setInterval(
-    () => loadPackets(page, search, selectedFrequencies), // refresh current page
-    3000
-  );
-
-  return () => clearInterval(intervalId);
-}, [page, search, selectedFrequencies, isAutoRefresh]);
-
-
-  // Apply frequency filter *after* fetching
-  const filteredPackets =
-    selectedFrequencies.length === 0
-      ? packets
-      : packets.filter((p) => selectedFrequencies.includes(p.frequency));
-      
-      return (
+  return (
     <Flex flex="1">
+      {/* Sidebar */}
       <Box
         minW="220px"
         borderRight="1px solid #444"
@@ -73,25 +96,95 @@ useEffect(() => {
         bg="gray.900"
       >
         <Box mb={4}>
-        <Link to="/graphs">
-          <Button>View Graphs →</Button>
-        </Link>
+          <Link to="/graphs">
+            <Button>View Graphs →</Button>
+          </Link>
+        </Box>
+
+        <AutoRefreshToggle />
+
+        {/* Filter by Device ID */}
+        <Box mb={4} mt={4}>
+          <Collapsible.Root
+            open={showIdFilter}
+            onOpenChange={(details) => setShowIdFilter(details.open)}
+          >
+            <Collapsible.Trigger asChild>
+              <Flex
+                align="center"
+                justify="space-between"
+                cursor="pointer"
+                bg="gray.600"
+                p={2}
+                rounded="md"
+              >
+                <Text fontWeight="bold" color="white">
+                  Filter by Device ID
+                </Text>
+                {showIdFilter ? (
+                  <ChevronUp color="white" />
+                ) : (
+                  <ChevronDown color="white" />
+                )}
+              </Flex>
+            </Collapsible.Trigger>
+
+            <Collapsible.Content>
+              <Box mt={2}>
+                <FilterById
+                  packets={packets}
+                  selectedIds={selectedIds}
+                  onChange={(newIds) => setSelectedIds(newIds)}
+                />
+              </Box>
+            </Collapsible.Content>
+          </Collapsible.Root>
+        </Box>
+
+        {/* Filter by Frequency */}
+        <Box mb={4}>
+          <Collapsible.Root
+            open={showFreqFilter}
+            onOpenChange={(details) => setShowFreqFilter(details.open)}
+          >
+            <Collapsible.Trigger asChild>
+              <Flex
+                align="center"
+                justify="space-between"
+                cursor="pointer"
+                bg="gray.600"
+                p={2}
+                rounded="md"
+              >
+                <Text fontWeight="bold" color="white">
+                  Filter by Frequency
+                </Text>
+                {showFreqFilter ? (
+                  <ChevronUp color="white" />
+                ) : (
+                  <ChevronDown color="white" />
+                )}
+              </Flex>
+            </Collapsible.Trigger>
+
+            <Collapsible.Content>
+              <Box mt={2}>
+                <FrequencyFilter
+                  packets={packets}
+                  selectedFrequencies={selectedFrequencies}
+                  onChange={(newFreqs) => {
+                    setSelectedFrequencies(newFreqs);
+                    loadPackets(1, search, newFreqs);
+                  }}
+                />
+              </Box>
+            </Collapsible.Content>
+          </Collapsible.Root>
+        </Box>
       </Box>
 
-      
-        <AutoRefreshToggle />
-        <FrequencyFilter
-          packets={packets}
-          selectedFrequencies={selectedFrequencies}
-          onChange={(newFreqs) => {
-            setSelectedFrequencies(newFreqs);
-            loadPackets(1, search, newFreqs);
-          }}
-        />
-      </Box>
-      
+      {/* Main Content */}
       <Box flex="1" px={6} py={6}>
-        
         <PacketTable
           packets={filteredPackets}
           page={page}
@@ -101,7 +194,6 @@ useEffect(() => {
           onSearch={(newSearch) => loadPackets(1, newSearch)}
           onPageChange={(newPage) => loadPackets(newPage)}
         />
-        
       </Box>
     </Flex>
   );
