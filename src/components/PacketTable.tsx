@@ -74,6 +74,7 @@ const PacketTable = ({
       placeholder="Search message or timestamp"
     />
   </InputGroup>
+  
 
       
         <>

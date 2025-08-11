@@ -55,23 +55,45 @@ function parseDateFromSearch(search) {
 
 // REST API
 fastify.get('/packets', async (request, reply) => {
-  const { page = 1, limit = 25, search = '', sort = '-timestamp' } = request.query;
+  const {
+    page = 1,
+    limit = 25,
+    search = '',
+    sort = '-timestamp',
+    frequencies
+  } = request.query;
+
   const skip = (parseInt(page) - 1) * parseInt(limit);
   const searchDate = parseDateFromSearch(search);
 
   let query = {};
+
+  // Date search
   if (searchDate) {
     query.timestamp = {
       $gte: new Date(`${searchDate}T00:00:00.000Z`),
       $lte: new Date(`${searchDate}T23:59:59.999Z`),
     };
-  } else if (search) {
-    query = { message: { $regex: search, $options: 'i' } };
+  }
+  // Text search
+  else if (search) {
+    query.message = { $regex: search, $options: 'i' };
   }
 
-  // Fix: Sort by timestamp (newest first) instead of _id
+  // Frequency filter (from comma-separated list)
+  if (frequencies) {
+    const freqArray = frequencies
+      .split(',')
+      .map(Number)
+      .filter((f) => !isNaN(f));
+    if (freqArray.length > 0) {
+      query.frequency = { $in: freqArray };
+    }
+  }
+
+  // Query DB
   const packets = await Packet.find(query)
-    .sort({ timestamp: -1 }) // <-- Critical change
+    .sort({ timestamp: -1 }) // newest first
     .skip(skip)
     .limit(parseInt(limit));
 
@@ -84,6 +106,5 @@ fastify.get('/packets', async (request, reply) => {
     pages: Math.ceil(total / parseInt(limit)),
   });
 });
-
 // Start HTTP server
 fastify.listen({ port: process.env.PORT || 3000, host: '0.0.0.0' });
