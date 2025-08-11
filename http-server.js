@@ -55,7 +55,7 @@ function parseDateFromSearch(search) {
 
 // REST API
 fastify.get('/packets', async (request, reply) => {
-  const { page = 1, limit = 25, search = '' } = request.query;
+  const { page = 1, limit = 25, search = '', sort = '-timestamp' } = request.query;
   const skip = (parseInt(page) - 1) * parseInt(limit);
   const searchDate = parseDateFromSearch(search);
 
@@ -69,7 +69,12 @@ fastify.get('/packets', async (request, reply) => {
     query = { message: { $regex: search, $options: 'i' } };
   }
 
-  const packets = await Packet.find(query).sort({ _id: -1 }).skip(skip).limit(parseInt(limit));
+  // Fix: Sort by timestamp (newest first) instead of _id
+  const packets = await Packet.find(query)
+    .sort({ timestamp: -1 }) // <-- Critical change
+    .skip(skip)
+    .limit(parseInt(limit));
+
   const total = await Packet.countDocuments(query);
 
   reply.send({
