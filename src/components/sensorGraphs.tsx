@@ -48,20 +48,40 @@ type SensorData = {
 const parseMessage = (message: string): SensorData => {
   if (!message) return {};
 
+  // Try to detect if it's CSV (no labels, only numbers separated by commas)
+  if (/^\s*-?\d+(\.\d+)?(,\s*-?\d+(\.\d+)?)*\s*$/.test(message)) {
+    const parts = message.split(",").map(v => {
+      const num = parseFloat(v.trim());
+      return isNaN(num) ? null : num;
+    });
+
+    return {
+      accx: parts[0] ?? null,
+      accy: parts[1] ?? null,
+      accz: parts[2] ?? null,
+      gyrox: parts[3] ?? null,
+      gyroy: parts[4] ?? null,
+      gyroz: parts[5] ?? null,
+      temp:  parts[6] ?? null,
+      pulse: parts[7] ?? null
+    };
+  }
+
+  // Fallback: original label-based parsing
   const extract = (key: string) => {
-    const match = message.match(new RegExp(`${key}:\\s*([0-9.]+)`, 'i'));
+    const match = message.match(new RegExp(`${key}:\\s*([0-9.]+)`, "i"));
     return match ? parseFloat(match[1]) : null;
   };
 
   return {
-    temp: extract('temp'),
-    pulse: extract('pulse'),
-    accx: extract('accx'),
-    accy: extract('accy'),
-    accz: extract('accz'),
-    gyrox: extract('gyrox'),
-    gyroy: extract('gyroy'),
-    gyroz: extract('gyroz'),
+    temp: extract("temp"),
+    pulse: extract("pulse"),
+    accx: extract("accx"),
+    accy: extract("accy"),
+    accz: extract("accz"),
+    gyrox: extract("gyrox"),
+    gyroy: extract("gyroy"),
+    gyroz: extract("gyroz")
   };
 };
 
